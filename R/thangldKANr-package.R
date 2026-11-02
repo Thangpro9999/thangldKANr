@@ -26,3 +26,9 @@
 #' \doi{10.48550/arXiv.2404.19756}
 #' @keywords internal
 "_PACKAGE"
+
+#' @importFrom stats predict
+NULL
+
+# `self` is bound by torch::nn_module() inside module methods.
+utils::globalVariables("self")
