@@ -1,0 +1,10 @@
+layer,name,dims
+0,base,3 4
+0,cheb,3 4 5
+0,rbf,3 4 5
+1,base,4 2
+1,cheb,4 2 4
+1,rbf,4 2 6
+2,base,2 1
+2,cheb,2 1 6
+2,rbf,2 1 4

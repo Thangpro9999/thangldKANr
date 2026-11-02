@@ -1,0 +1,14 @@
+{
+  "reference": "quiqi/relu_kan ReLUKANLayer (train_ab = True)",
+  "url": "https://github.com/quiqi/relu_kan",
+  "commit": "79eab7a27392eb5f33e119710f0e75ec902764c0",
+  "pinned_commit": "79eab7a27392eb5f33e119710f0e75ec902764c0",
+  "python": "3.12.16",
+  "torch": "2.14.1",
+  "numpy": "2.5.4",
+  "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
+  "threads": 1,
+  "dtype": "float64",
+  "configuration": "ReLUKANLayer unchanged; phase_low, phase_height, r and Conv2d weight/bias set from the R parameters; plain stack on (batch, features, 1)",
+  "commit_ok": true
+}

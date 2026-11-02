@@ -1,0 +1,2 @@
+epochs,lr,beta1,beta2,eps,patience
+200,0.02,0.90000000000000002,0.999,1e-08,50

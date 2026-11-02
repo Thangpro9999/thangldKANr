@@ -1,0 +1,10 @@
+layer,name,dims
+0,weight,3 4
+0,translation,3 4
+0,scale,3 4
+1,weight,4 2
+1,translation,4 2
+1,scale,4 2
+2,weight,2 1
+2,translation,2 1
+2,scale,2 1

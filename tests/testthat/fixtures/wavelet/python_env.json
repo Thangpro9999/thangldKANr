@@ -1,0 +1,14 @@
+{
+  "reference": "Wav-KAN KANLinear (mexican_hat)",
+  "url": "https://github.com/zavareh1/Wav-KAN",
+  "commit": "f7ab5215e69b1a32e9e289159d2fd55d078fa051",
+  "pinned_commit": "f7ab5215e69b1a32e9e289159d2fd55d078fa051",
+  "python": "3.12.16",
+  "torch": "2.14.1",
+  "numpy": "2.5.4",
+  "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
+  "threads": 1,
+  "dtype": "float64",
+  "configuration": "mexican_hat; BatchNorm1d replaced by Identity; thangldKANr (basis wavelet) scale_param='raw', bias=FALSE; weight = -wavelet_weights.T",
+  "commit_ok": true
+}

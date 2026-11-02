@@ -1,0 +1,94 @@
+---
+title: "Lag-window KAN forecasting with thangldKANr"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Lag-window KAN forecasting with thangldKANr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r}
+library(thangldKANr)
+```
+
+## Model
+
+A Temporal KAN here is a Kolmogorov-Arnold Network applied to a
+window of lagged values: for lags $\ell_1, \dots, \ell_p$ the input at time
+$t$ is $(y_{t-\ell_1}, \dots, y_{t-\ell_p})$ and the target is $y_t$. With the
+default basis each edge function is $\phi(u) = \sum_{k=0}^{K} c_k T_k(\tanh u)$
+(any basis of `kan_bases()` can be chosen with `basis`) on the
+standardized lags. With no hidden layer the model is an additive nonlinear
+autoregression; hidden layers add interactions between lags. Optional
+`log = TRUE` and `difference = TRUE` transform the series before windowing
+and are inverted for forecasts.
+
+The model is a forecasting tool, not a recurrent network: there is no state
+carried across windows, and `predict()` gives one-step-ahead forecasts only.
+
+## Leakage rules
+
+* Windows are built from past values only (`thangld_temporal_kan_embed()`).
+* The standardization constants are estimated on the training windows only;
+  the last `n_val` windows (in time order) are held out for early stopping.
+* `thangld_temporal_kan_rolling()` refits on $y_{1:t_0}$ for an origin $t_0$ and never
+  uses a value after $t_0$ for that origin's forecast.
+
+## Example: Canadian lynx (log scale)
+
+The base R backend (`backend = "r"`) is used so the vignette builds without
+libtorch; `backend = "torch"` follows the same trajectory in double precision.
+
+```{r}
+y <- log(as.numeric(datasets::lynx))
+m <- thangld_temporal_kan(lags = 1:3, degree = 4, seed = 1)
+m
+fit <- thangld_temporal_kan_fit(m, y[1:100], n_val = 15, epochs = 150, lr = 0.02,
+                        batch_size = 32, patience = 40, seed = 1, backend = "r")
+fit$train$best_epoch
+predict(fit)   # forecast of y[101]
+y[101]
+```
+
+## Rolling-origin evaluation against baselines
+
+Every origin from 100 to 113 forecasts the next value; the network is refitted
+every 5 origins (expanding window). The naive forecast is the benchmark that a
+forecasting model has to beat.
+
+```{r}
+r <- thangld_temporal_kan_rolling(thangld_temporal_kan(1:3, seed = 1), y, initial = 100,
+                          refit_every = 5, n_val = 15, epochs = 100,
+                          lr = 0.02, patience = 40, seed = 1, backend = "r")
+r$metrics
+```
+
+```{r, fig.width = 6, fig.height = 3.5}
+fc <- r$forecasts
+plot(fc$index, fc$actual, type = "b", pch = 16, xlab = "t", ylab = "log lynx")
+lines(fc$index, fc$kan, type = "b", col = 2)
+lines(fc$index, fc$naive, type = "b", col = 4, lty = 2)
+legend("topleft", c("actual", "temporal KAN", "naive"), col = c(1, 2, 4),
+       lty = c(1, 1, 2), bty = "n")
+```
+
+The result above is a small illustration with 14 origins; it is not evidence
+that the model beats simple methods on this series. A longer comparison with
+naive, seasonal naive, Holt-Winters and a linear autoregression is in
+`system.file("benchmarks", package = "thangldKANr")`.
+
+## Validation
+
+`thangld_temporal_kan_validate()` checks windows, scaling, the basis, analytic
+against finite-difference gradients and the torch backend against the base R
+oracle. The bundled reference test compares training on log lynx with
+ChebyKAN (commit `5f7efdd`) run on lag windows that Python built itself.
+
+```{r}
+v <- thangld_temporal_kan_validate("r")
+table(v$status)
+```

@@ -1,0 +1,14 @@
+{
+  "reference": "SpaceLearner JacobiKANLayer (a = b = 1)",
+  "url": "https://github.com/SpaceLearner/JacobiKAN",
+  "commit": "51d160cfbf70914e4862e192ed3eef403dab893b",
+  "pinned_commit": "51d160cfbf70914e4862e192ed3eef403dab893b",
+  "python": "3.12.16",
+  "torch": "2.14.1",
+  "numpy": "2.5.4",
+  "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
+  "threads": 1,
+  "dtype": "float64",
+  "configuration": "JacobiKANLayer unchanged (tanh + three-term recurrence), a = b = 1; plain stack",
+  "commit_ok": true
+}

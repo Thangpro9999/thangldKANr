@@ -1,0 +1,16 @@
+layer,name,dims
+0,weight,3 4 5
+0,ln_weight,3
+0,ln_bias,3
+0,base_weight,4 3
+0,base_bias,4
+1,weight,4 2 5
+1,ln_weight,4
+1,ln_bias,4
+1,base_weight,2 4
+1,base_bias,2
+2,weight,2 1 5
+2,ln_weight,2
+2,ln_bias,2
+2,base_weight,1 2
+2,base_bias,1

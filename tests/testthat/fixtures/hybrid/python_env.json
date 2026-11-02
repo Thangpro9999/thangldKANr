@@ -1,0 +1,16 @@
+{
+  "reference": "ChebyKANLayer + FastKAN RadialBasisFunction + Linear(SiLU)",
+  "url": "https://github.com/SynodicMonth/ChebyKAN + https://github.com/ZiyaoLi/fast-kan",
+  "commit": "5f7efdd18e749bcc99481bd87dc90bdeafb920d8",
+  "pinned_commit": "5f7efdd18e749bcc99481bd87dc90bdeafb920d8",
+  "python": "3.12.16",
+  "torch": "2.14.1",
+  "numpy": "2.5.4",
+  "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
+  "threads": 1,
+  "dtype": "float64",
+  "configuration": "sum of ChebyKANLayer (opt or unopt), FastKAN RBF (grid [-2,2]) + bias-free linear, Linear(SiLU)",
+  "commit_ok": true,
+  "fastkan_commit": "17b65401c252334fffb5e63c9852dd8316d29e69",
+  "fastkan_pinned_commit": "17b65401c252334fffb5e63c9852dd8316d29e69"
+}

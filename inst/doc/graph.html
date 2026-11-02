@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Node regression with graph KANs</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Node regression with graph KANs</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(thangldKANr)</span></code></pre></div>
+<div id="model" class="section level2">
+<h2>Model</h2>
+<p>Each layer first averages node states over neighborhoods with <span class="math inline">\(\hat A = D^{-1/2}(A + I)D^{-1/2}\)</span> and then
+applies a Kolmogorov-Arnold layer with Chebyshev edge functions to every
+node:</p>
+<p><span class="math display">\[H^{(l)} = \mathrm{KAN}_l(\hat A
+H^{(l-1)}), \qquad
+\mathrm{KAN}_l(U)_{v,j} = \sum_i \sum_{k=0}^{K} c_{i,j,k} T_k(\tanh
+U_{v,i}).\]</span></p>
+<p>This is the “aggregate, then KAN” order of graph KANs (Kiamari et
+al., 2024). An <code>L</code>-layer network sees the <code>L</code>-hop
+neighborhood of a node. Without a graph (<code>graph = NULL</code>,
+identity <span class="math inline">\(\hat A\)</span>) the model is a
+node-wise Chebyshev KAN, the baseline that tells whether the graph
+helps.</p>
+<p>With <code>self_branch = TRUE</code> each layer receives the node’s
+own state next to its neighborhood mean, <span class="math inline">\(H^{(l)} = \mathrm{KAN}_l([H^{(l-1)}, \hat A
+H^{(l-1)}])\)</span> (the GraphSAGE update), so a deep network can still
+use one hop or the node’s own features only.</p>
+<p>The graph model covers transductive node regression on one graph: all
+node features are propagated, the loss uses the training nodes only, the
+validation nodes are used for early stopping, and the labels of other
+nodes are never read. Standardization constants come from the training
+nodes.</p>
+</div>
+<div id="a-simulated-graph" class="section level2">
+<h2>A simulated graph</h2>
+<p>There is no graph dataset in base R, so this example uses the
+stochastic block model simulator. The target depends on one-hop
+neighborhood means.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">thangld_graph_kan_simulate</span>(<span class="dv">300</span>, <span class="at">p_in =</span> <span class="fl">0.08</span>, <span class="at">p_out =</span> <span class="fl">0.005</span>, <span class="at">seed =</span> <span class="dv">1</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">thangld_graph_kan_adjacency</span>(g<span class="sc">$</span>adjacency)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>u <span class="ot">&lt;-</span> a <span class="sc">%*%</span> g<span class="sc">$</span>x</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">sin</span>(<span class="fl">1.5</span> <span class="sc">*</span> u[, <span class="dv">1</span>]) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> u[, <span class="dv">2</span>]<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">300</span>, <span class="at">sd =</span> <span class="fl">0.05</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>train <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">180</span>; val <span class="ot">&lt;-</span> <span class="dv">181</span><span class="sc">:</span><span class="dv">240</span>; test <span class="ot">&lt;-</span> <span class="dv">241</span><span class="sc">:</span><span class="dv">300</span></span></code></pre></div>
+<p>The base R backend (<code>backend = &quot;r&quot;</code>) is used so the
+vignette builds without libtorch.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>fit_g <span class="ot">&lt;-</span> <span class="fu">thangld_graph_kan_fit</span>(<span class="fu">thangld_graph_kan</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">1</span>), <span class="at">degree =</span> <span class="dv">5</span>, <span class="at">seed =</span> <span class="dv">1</span>), g<span class="sc">$</span>x, g<span class="sc">$</span>adjacency, y,</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>                       train, val, <span class="at">epochs =</span> <span class="dv">600</span>, <span class="at">lr =</span> <span class="fl">0.02</span>, <span class="at">patience =</span> <span class="dv">60</span>, <span class="at">backend =</span> <span class="st">&quot;r&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>fit_0 <span class="ot">&lt;-</span> <span class="fu">thangld_graph_kan_fit</span>(<span class="fu">thangld_graph_kan</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">1</span>), <span class="at">degree =</span> <span class="dv">5</span>, <span class="at">seed =</span> <span class="dv">1</span>), g<span class="sc">$</span>x, <span class="cn">NULL</span>, y,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>                       train, val, <span class="at">epochs =</span> <span class="dv">600</span>, <span class="at">lr =</span> <span class="fl">0.02</span>, <span class="at">patience =</span> <span class="dv">60</span>, <span class="at">backend =</span> <span class="st">&quot;r&quot;</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>fit_g</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; Graph KAN: widths 2 -&gt; 1 | layer input A_hat H with A_hat = D^-1/2 (A + I) D^-1/2 | edges: Chebyshev K=5 </span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; Fitted on 300 nodes: 180 train, 60 validation | backend r | best epoch 600 of 600</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">graph =</span> <span class="fu">thangld_graph_kan_metrics</span>(y[test], <span class="fu">predict</span>(fit_g)[test]),</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>      <span class="at">no_graph =</span> <span class="fu">thangld_graph_kan_metrics</span>(y[test], <span class="fu">predict</span>(fit_0)[test]))</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt;                rmse        mae        r2</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; graph    0.08694136 0.06820108 0.9861789</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; no_graph 0.60694967 0.50576664 0.3264123</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>h <span class="ot">&lt;-</span> fit_g<span class="sc">$</span>history</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">plot</span>(h<span class="sc">$</span>epoch, h<span class="sc">$</span>train_loss, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">log =</span> <span class="st">&quot;y&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;epoch&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;MSE (model scale)&quot;</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">lines</span>(h<span class="sc">$</span>epoch, h<span class="sc">$</span>val_loss, <span class="at">col =</span> <span class="dv">2</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topright&quot;</span>, <span class="fu">c</span>(<span class="st">&quot;train nodes&quot;</span>, <span class="st">&quot;validation nodes&quot;</span>), <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">bty =</span> <span class="st">&quot;n&quot;</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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b73l4PDHGOtr1669devWrVt46pUxbr26iR9WmbsKAIA2zmCA3bt3LyZGvy+4RCJxdHQsKcFzh43pEf1yrbJRXYKrhgAAzchggDk7O6elpelNLCwsLCgocHFxaeaquK1z586Xqh4W4TIYAEBzMhhgY8aM2bhx49ixYw8ePFhdXX3v3r2UlJQBAwaEh4d7e3u3YIXcw+PxamxkBRlnzV0IAEBbZvCBln369Fm7du2cOXN++OEHQkh6ejohJDY2dsOGDc1XTVFRUV5eXk1NDU3TTk5OPj4+NE033+qaj8y/gwojIgIANCeDAUYImThx4ujRoy9cuFBSUmJhYdGpUydXV9fmKEKr1S5dunTlypV63UNkMllcXNxnn33GuWM+3+hI61U7CMMQijJ3LQAAbZOxACOECIXCHj16NHcRkydP3r59++TJkyMiIjw8PCQSiUqlKisry87O3rhxY/fu3c+dO9c6B68yJCSi99nEHypv3rHp2N7ctQAAtE36ATZ+/PizZ41dvNFoNBs2bOjZs6epKigsLFy/fj1707ReU3R09LvvvhsdHb148eKlS5eaao0tQCQSFfI09OHjPRFgAADNQz/AgoKCpFIp+/rUqVM3b958+eWX5XK5QqHIycnJz8+fPHmys7OzCSvIz88XiUSPptcf9QkEAwcOPHbsmAnX2EI8nEvxdGYAgGajH2AzZsxgXxw6dCgzM7OgoEAmk+lak5KSduzYYdqzee7u7g0NDefPnw8ODn7sDGlpae7u7iZcY8tw7t618acj5q4CAKDNMtiNfu3atWPGjGmaXoSQqVOnZmZm5ubmmrACDw+PuLi4/v37L1q06OzZs0VFRQqFoqKi4saNGzt37hwwYMDhw4enT59uwjW2jK6vxrpTQmVDg7kLAQBomwx24lAoFMXFxXoTq6urGxoaKisrTVvE5s2b586dO3/+/Orq6qbTKYoKDw9PTU0NCgoy7RpbgLXc8ZJGVff78W6vxJq7FgCANshggL388ssfffQRwzBRUVEODg4ajebmzZvffPONVCrt3LmzaYsQi8VLlixZuHDhxYsX8/LyamtraZqWy+WdO3eWy+WmXVdLUlhLHpw4hQADAGgOBgNs5syZ+fn5X3755Weffaab6OXltWPHDl0vD9OiaTokJCQkJERvemVlZUNDg2l7jrQMcUevshz04wAAaBYGA0wo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" /><!-- --></p>
+</div>
+<div id="deeper-networks-and-the-self-branch" class="section level2">
+<h2>Deeper networks and the self branch</h2>
+<p>In the plain architecture every layer propagates, so a two-layer
+network averages over two hops. On the one-hop target that hurts; the
+self branch removes the problem:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="cf">function</span>(sb) <span class="fu">thangld_graph_kan_fit</span>(<span class="fu">thangld_graph_kan</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">1</span>), <span class="at">degree =</span> <span class="dv">3</span>, <span class="at">self_branch =</span> sb,</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                                             <span class="at">seed =</span> <span class="dv">1</span>), g<span class="sc">$</span>x, g<span class="sc">$</span>adjacency, y, train, val,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>                                   <span class="at">epochs =</span> <span class="dv">600</span>, <span class="at">lr =</span> <span class="fl">0.02</span>, <span class="at">patience =</span> <span class="dv">60</span>, <span class="at">backend =</span> <span class="st">&quot;r&quot;</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="fu">rbind</span>(<span class="at">plain_2layer =</span> <span class="fu">thangld_graph_kan_metrics</span>(y[test], <span class="fu">predict</span>(<span class="fu">fit2</span>(<span class="cn">FALSE</span>))[test]),</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>      <span class="at">self_branch_2layer =</span> <span class="fu">thangld_graph_kan_metrics</span>(y[test], <span class="fu">predict</span>(<span class="fu">fit2</span>(<span class="cn">TRUE</span>))[test]))</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt;                          rmse        mae        r2</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; plain_2layer       0.31175583 0.25493992 0.8222875</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; self_branch_2layer 0.08924431 0.06889142 0.9854370</span></span></code></pre></div>
+</div>
+<div id="cautions" class="section level2">
+<h2>Cautions</h2>
+<ul>
+<li>The plain two-layer network missed a preregistered threshold on a
+one-hop target and fails on own-feature targets; the self branch meets
+both follow-up checks
+(<code>inst/benchmarks/neighborhood_check.R</code>), but on own-feature
+targets it is still worse than the graph-free KAN.</li>
+<li>Results on simulated graphs are not evidence about real
+networks.</li>
+</ul>
+</div>
+<div id="validation" class="section level2">
+<h2>Validation</h2>
+<p><code>thangld_graph_kan_validate()</code> checks the normalized
+adjacency, the forward pass against explicit neighbor loops, analytic
+gradients against finite differences, permutation equivariance, the
+identity-graph reduction and save/load; torch checks are added when the
+runtime is installed.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">thangld_graph_kan_validate</span>(<span class="st">&quot;r&quot;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>v[, <span class="fu">c</span>(<span class="st">&quot;check&quot;</span>, <span class="st">&quot;pass&quot;</span>)]</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt;                                                             check pass</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; 1         normalized adjacency vs explicit loop (edge list input) TRUE</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; 2                     edge list and adjacency matrix inputs agree TRUE</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; 3                           Chebyshev recurrence vs cos(k acos z) TRUE</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; 4            oracle vs naive loops (neighbor sums, cos(k acos z)) TRUE</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; 5                coefficients vs central difference O4 (h=0.0001) TRUE</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; 6               node features vs central difference O4 (h=0.0001) TRUE</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; 7                 coefficients vs central difference O4 (h=1e-05) TRUE</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; 8                node features vs central difference O4 (h=1e-05) TRUE</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; 9                 coefficients vs central difference O4 (h=1e-06) TRUE</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; 10               node features vs central difference O4 (h=1e-06) TRUE</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; 11                self branch [H, A_hat H]: oracle vs naive loops TRUE</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; 12  self branch: coefficients vs central difference O4 (h=0.0001) TRUE</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; 13 self branch: node features vs central difference O4 (h=0.0001) TRUE</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; 14   self branch: coefficients vs central difference O4 (h=1e-05) TRUE</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; 15  self branch: node features vs central difference O4 (h=1e-05) TRUE</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; 16   self branch: coefficients vs central difference O4 (h=1e-06) TRUE</span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; 17  self branch: node features vs central difference O4 (h=1e-06) TRUE</span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; 18               permutation equivariance f(PX, PAP&#39;) = P f(X, A) TRUE</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; 19                       identity graph = node-wise Chebyshev KAN TRUE</span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; 20          self branch, identity graph = node-wise KAN on [X, X] TRUE</span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co">#&gt; 21   self branch with zero neighbor coefficients = graph-free KAN TRUE</span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co">#&gt; 22                             predictions before vs after reload TRUE</span></span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt; 23      basis &quot;rbf&quot;: gradients vs central difference O4 (h=1e-05) TRUE</span></span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt; 24 basis &quot;legendre&quot;: gradients vs central difference O4 (h=1e-05) TRUE</span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt; 25  basis &quot;wavelet&quot;: gradients vs central difference O4 (h=1e-05) TRUE</span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="co">#&gt; 26 basis &quot;rational&quot;: gradients vs central difference O4 (h=1e-05) TRUE</span></span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt; 27   basis &quot;hybrid&quot;: gradients vs central difference O4 (h=1e-05) TRUE</span></span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt; 28   basis &quot;jacobi&quot;: gradients vs central difference O4 (h=1e-05) TRUE</span></span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt; 29     basis &quot;relu&quot;: gradients vs central difference O4 (h=1e-05) TRUE</span></span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

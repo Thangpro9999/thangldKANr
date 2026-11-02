@@ -1,0 +1,14 @@
+{
+  "reference": "OrthogPolyKANs LegendreKANLayer",
+  "url": "https://github.com/Boris-73-TA/OrthogPolyKANs",
+  "commit": "3b2760a7def56122dafaef53ad7ac3aa87804826",
+  "pinned_commit": "3b2760a7def56122dafaef53ad7ac3aa87804826",
+  "python": "3.12.16",
+  "torch": "2.14.1",
+  "numpy": "2.5.4",
+  "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
+  "threads": 1,
+  "dtype": "float64",
+  "configuration": "LegendreKANLayer unchanged (tanh + Bonnet recurrence); plain stack",
+  "commit_ok": true
+}

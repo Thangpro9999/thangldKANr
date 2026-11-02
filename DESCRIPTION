@@ -1,0 +1,46 @@
+Package: thangldKANr
+Type: Package
+Title: Kolmogorov-Arnold Networks with Interchangeable Edge Bases Using
+        'torch'
+Version: 0.1.0
+Authors@R: 
+    person(given = "Thang", family = "Le-Dinh",
+           email = "thang87sg@gmail.com",
+           role = c("aut", "cre", "cph"))
+Description: Implements Kolmogorov-Arnold Networks (KAN) in R on top of the
+    'torch' package (no 'Python' needed) with one network engine and
+    interchangeable edge bases: Chebyshev, Legendre and Jacobi polynomials,
+    Gaussian radial basis functions (FastKAN), Mexican hat wavelets (Bozorgasl
+    and Chen (2024) <doi:10.48550/arXiv.2405.12832>), safe Pade rational
+    functions (Molina, Schramowski and Kersting (2020)
+    <doi:10.48550/arXiv.1907.06732>), a hybrid of SiLU, Chebyshev and radial
+    basis parts, and squared rectified linear unit bumps (Qiu et al. (2024)
+    <doi:10.48550/arXiv.2406.02075>). Each layer may use a different basis,
+    and further bases can be registered by other packages. Besides tabular
+    regression, the same layers power graph KANs for node regression
+    (neighbourhood aggregation with the normalized adjacency matrix, as in
+    Kiamari, Kiamari and Krishnamachari (2024)
+    <doi:10.48550/arXiv.2406.06470>) and lag-window KANs for one-step time
+    series forecasting. Provides multi-layer networks with Adam training,
+    training-only standardization, validation-based early stopping,
+    reproducible seeds, edge-function evaluation and plots, and model
+    persistence. A base R reference implementation with analytic gradients
+    serves as a numerical oracle and as a training backend that does not
+    need 'libtorch'. The network follows Liu et al. (2024)
+    <doi:10.48550/arXiv.2404.19756>.
+License: GPL-3
+Encoding: UTF-8
+Language: en-US
+Depends: R (>= 4.1.0)
+Imports: graphics, stats, torch (>= 0.13.0), utils
+Suggests: knitr, rmarkdown, testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Roxygen: list(markdown = TRUE)
+URL: https://github.com/Thangpro9999/thangldKANr
+BugReports: https://github.com/Thangpro9999/thangldKANr/issues
+Config/roxygen2/version: 8.1.0
+NeedsCompilation: no
+Packaged: 2026-11-02 10:02:42 UTC; root
+Author: Thang Le-Dinh [aut, cre, cph]
+Maintainer: Thang Le-Dinh <thang87sg@gmail.com>

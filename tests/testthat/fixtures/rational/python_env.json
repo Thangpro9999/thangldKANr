@@ -1,0 +1,14 @@
+{
+  "reference": "rational_activations Rational_PYTORCH_B_F (safe Pade, per edge)",
+  "url": "https://github.com/ml-research/rational_activations",
+  "commit": "2496d918d924b117ef06ec35bdca7f207720c62c",
+  "pinned_commit": "2496d918d924b117ef06ec35bdca7f207720c62c",
+  "python": "3.12.16",
+  "torch": "2.14.1",
+  "numpy": "2.5.4",
+  "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
+  "threads": 1,
+  "dtype": "float64",
+  "configuration": "Rational_PYTORCH_B_F unchanged, one coefficient set per edge, summed over inputs",
+  "commit_ok": true
+}

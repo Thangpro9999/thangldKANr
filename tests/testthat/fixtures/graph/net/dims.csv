@@ -1,0 +1,4 @@
+layer,name,dims
+0,coef,3 4 5
+1,coef,4 2 4
+2,coef,2 1 6

@@ -1,0 +1,14 @@
+bibentry(
+  bibtype = "Manual",
+  key = "thangldKANr",
+  title = "{thangldKANr}: Kolmogorov-Arnold Networks with Interchangeable Edge Bases Using 'torch'",
+  author = person(given = "Thang", family = "Le-Dinh",
+                  email = "thang87sg@gmail.com"),
+  year = "2026",
+  note = paste("R package version", meta$Version),
+  url = "https://github.com/Thangpro9999/thangldKANr",
+  textVersion = paste0(
+    "Le-Dinh, T. (2026). thangldKANr: Kolmogorov-Arnold Networks with ",
+    "Interchangeable Edge Bases Using 'torch'. R package version ",
+    meta$Version, ". https://github.com/Thangpro9999/thangldKANr")
+)

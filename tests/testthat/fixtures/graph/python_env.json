@@ -1,0 +1,13 @@
+{
+  "reference": "NumPy A_hat + ChebyKANLayer stack + torch.optim.Adam (full batch)",
+  "url": "https://github.com/SynodicMonth/ChebyKAN",
+  "commit": "5f7efdd18e749bcc99481bd87dc90bdeafb920d8",
+  "pinned_commit": "5f7efdd18e749bcc99481bd87dc90bdeafb920d8",
+  "commit_ok": true,
+  "python": "3.12.16",
+  "torch": "2.14.1",
+  "numpy": "2.5.4",
+  "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
+  "threads": 1,
+  "dtype": "float64"
+}

@@ -1,0 +1,109 @@
+---
+title: "Node regression with graph KANs"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Node regression with graph KANs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r}
+library(thangldKANr)
+```
+
+## Model
+
+Each layer first averages node states over neighborhoods with
+$\hat A = D^{-1/2}(A + I)D^{-1/2}$ and then applies a Kolmogorov-Arnold layer
+with Chebyshev edge functions to every node:
+
+$$H^{(l)} = \mathrm{KAN}_l(\hat A H^{(l-1)}), \qquad
+\mathrm{KAN}_l(U)_{v,j} = \sum_i \sum_{k=0}^{K} c_{i,j,k} T_k(\tanh U_{v,i}).$$
+
+This is the "aggregate, then KAN" order of graph KANs (Kiamari et al., 2024).
+An `L`-layer network sees the `L`-hop neighborhood of a node. Without a graph
+(`graph = NULL`, identity $\hat A$) the model is a node-wise Chebyshev KAN,
+the baseline that tells whether the graph helps.
+
+With `self_branch = TRUE` each layer receives the node's own state next to
+its neighborhood mean,
+$H^{(l)} = \mathrm{KAN}_l([H^{(l-1)}, \hat A H^{(l-1)}])$ (the GraphSAGE
+update), so a deep network can still use one hop or the node's own features
+only.
+
+The graph model covers transductive node regression on one graph: all node
+features are propagated, the loss uses the training nodes only, the
+validation nodes are used for early stopping, and the labels of other nodes
+are never read. Standardization constants come from the training nodes.
+
+## A simulated graph
+
+There is no graph dataset in base R, so this example uses the stochastic
+block model simulator. The target depends on one-hop neighborhood means.
+
+```{r}
+g <- thangld_graph_kan_simulate(300, p_in = 0.08, p_out = 0.005, seed = 1)
+a <- thangld_graph_kan_adjacency(g$adjacency)
+u <- a %*% g$x
+set.seed(2)
+y <- sin(1.5 * u[, 1]) + 0.5 * u[, 2]^2 + rnorm(300, sd = 0.05)
+train <- 1:180; val <- 181:240; test <- 241:300
+```
+
+The base R backend (`backend = "r"`) is used so the vignette builds without
+libtorch.
+
+```{r}
+fit_g <- thangld_graph_kan_fit(thangld_graph_kan(c(2, 1), degree = 5, seed = 1), g$x, g$adjacency, y,
+                       train, val, epochs = 600, lr = 0.02, patience = 60, backend = "r")
+fit_0 <- thangld_graph_kan_fit(thangld_graph_kan(c(2, 1), degree = 5, seed = 1), g$x, NULL, y,
+                       train, val, epochs = 600, lr = 0.02, patience = 60, backend = "r")
+fit_g
+rbind(graph = thangld_graph_kan_metrics(y[test], predict(fit_g)[test]),
+      no_graph = thangld_graph_kan_metrics(y[test], predict(fit_0)[test]))
+```
+
+```{r, fig.width = 6, fig.height = 3.5}
+h <- fit_g$history
+plot(h$epoch, h$train_loss, type = "l", log = "y", xlab = "epoch", ylab = "MSE (model scale)")
+lines(h$epoch, h$val_loss, col = 2)
+legend("topright", c("train nodes", "validation nodes"), col = 1:2, lty = 1, bty = "n")
+```
+
+## Deeper networks and the self branch
+
+In the plain architecture every layer propagates, so a two-layer network
+averages over two hops. On the one-hop target that hurts; the self branch
+removes the problem:
+
+```{r}
+fit2 <- function(sb) thangld_graph_kan_fit(thangld_graph_kan(c(2, 4, 1), degree = 3, self_branch = sb,
+                                             seed = 1), g$x, g$adjacency, y, train, val,
+                                   epochs = 600, lr = 0.02, patience = 60, backend = "r")
+rbind(plain_2layer = thangld_graph_kan_metrics(y[test], predict(fit2(FALSE))[test]),
+      self_branch_2layer = thangld_graph_kan_metrics(y[test], predict(fit2(TRUE))[test]))
+```
+
+## Cautions
+
+* The plain two-layer network missed a preregistered threshold on a one-hop
+  target and fails on own-feature targets; the self branch meets both
+  follow-up checks (`inst/benchmarks/neighborhood_check.R`), but on
+  own-feature targets it is still worse than the graph-free KAN.
+* Results on simulated graphs are not evidence about real networks.
+
+## Validation
+
+`thangld_graph_kan_validate()` checks the normalized adjacency, the forward pass
+against explicit neighbor loops, analytic gradients against finite
+differences, permutation equivariance, the identity-graph reduction and
+save/load; torch checks are added when the runtime is installed.
+
+```{r}
+v <- thangld_graph_kan_validate("r")
+v[, c("check", "pass")]
+```

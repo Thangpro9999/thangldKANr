@@ -1,0 +1,10 @@
+{
+ "chebyshev": "chebykan_reference.py",
+ "rbf": "fastkan_reference.py",
+ "legendre": "legendrekan_reference.py",
+ "wavelet": "wavkan_reference.py",
+ "rational": "rationalkan_reference.py",
+ "hybrid": "hybridkan_reference.py",
+ "jacobi": "jacobikan_reference.py",
+ "relu": "relukan_reference.py"
+}
